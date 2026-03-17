@@ -7,13 +7,17 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    getBusinessProfile().then(profile => {
-      if (profile) {
-        router.replace('/dashboard');
-      } else {
+    getBusinessProfile()
+      .then(profile => {
+        if (profile) {
+          router.replace('/dashboard');
+        } else {
+          router.replace('/onboarding');
+        }
+      })
+      .catch(() => {
         router.replace('/onboarding');
-      }
-    });
+      });
   }, [router]);
 
   return (

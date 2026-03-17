@@ -14,7 +14,7 @@ export class InvoiceDatabase extends Dexie {
     super('InvoiceGenDB');
 
     this.version(1).stores({
-      invoices: 'id, invoiceNumber, status, &invoiceNumber, createdAt, dueDate, nextReminderAt',
+      invoices: 'id, &invoiceNumber, status, createdAt, dueDate, nextReminderAt',
       businessProfile: '++id',
       settings: '++id',
       reminders: '++id, invoiceId, nextReminderAt, active',
