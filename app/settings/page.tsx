@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useProfileStore } from '@/store/profileStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useUIStore } from '@/store/uiStore';
@@ -8,9 +9,12 @@ import { Input } from '@/components/shared/Input';
 import { Button } from '@/components/shared/Button';
 import { AddressFields } from '@/components/shared/AddressFields';
 import { PhoneInput } from '@/components/shared/PhoneInput';
+import { getAuthEmail } from '@/lib/db/auth';
+import { clearSession } from '@/lib/auth/session';
 import type { Address } from '@/types/invoice.types';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { profile, loadProfile, saveProfile } = useProfileStore();
   const { settings, loadSettings, updateSettings } = useSettingsStore();
   const { addToast } = useUIStore();
@@ -19,9 +23,10 @@ export default function SettingsPage() {
   const [localProfile, setLocalProfile] = useState(profile);
   const [paymentTerms, setPaymentTerms] = useState(settings?.defaultPaymentTermsDays ?? 30);
   const [reminderInterval, setReminderInterval] = useState(settings?.reminderIntervalDays ?? 3);
+  const [authEmail, setAuthEmail] = useState<string | undefined>(undefined);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { loadProfile(); loadSettings(); }, []);
+  useEffect(() => { loadProfile(); loadSettings(); getAuthEmail().then(setAuthEmail); }, []);
 
   useEffect(() => {
     setLocalProfile(profile);
@@ -54,6 +59,11 @@ export default function SettingsPage() {
 
   const update = (field: string, value: string | boolean) => {
     setLocalProfile(p => p ? { ...p, [field]: value } : p);
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    router.replace('/login');
   };
 
   if (!localProfile) {
@@ -154,6 +164,12 @@ export default function SettingsPage() {
             onChange={e => setReminderInterval(Number(e.target.value))}
             hint="How often to send payment reminders"
           />
+        </section>
+        {/* Account */}
+        <section className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
+          <h2 className="font-bold text-text-base">Account</h2>
+          {authEmail && <p className="text-sm text-gray-500">Logged in as {authEmail}</p>}
+          <Button variant="danger" fullWidth onClick={handleLogout}>Log Out</Button>
         </section>
       </div>
 

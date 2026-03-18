@@ -1,23 +1,33 @@
 'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authRecordExists } from '@/lib/db/auth';
+import { isLoggedIn } from '@/lib/auth/session';
 import { getBusinessProfile } from '@/lib/db/businessProfile';
 
 export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    getBusinessProfile()
-      .then(profile => {
-        if (profile) {
-          router.replace('/dashboard');
-        } else {
-          router.replace('/onboarding');
+    (async () => {
+      try {
+        const hasAuth = await authRecordExists();
+        if (!hasAuth) {
+          router.replace('/register');
+          return;
         }
-      })
-      .catch(() => {
-        router.replace('/onboarding');
-      });
+
+        if (!isLoggedIn()) {
+          router.replace('/login');
+          return;
+        }
+
+        const profile = await getBusinessProfile();
+        router.replace(profile ? '/dashboard' : '/onboarding');
+      } catch {
+        router.replace('/register');
+      }
+    })();
   }, [router]);
 
   return (
