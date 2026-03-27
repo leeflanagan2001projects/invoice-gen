@@ -9,13 +9,13 @@ interface SessionData {
 export function setSession(email: string): void {
   if (typeof window === 'undefined') return;
   const data: SessionData = { loggedIn: true, email, loginAt: Date.now() };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
 }
 
 export function getSession(): SessionData | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as SessionData;
   } catch {
@@ -29,5 +29,5 @@ export function isLoggedIn(): boolean {
 
 export function clearSession(): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
 }

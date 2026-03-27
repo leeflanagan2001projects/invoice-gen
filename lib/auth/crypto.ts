@@ -1,17 +1,23 @@
 function toBase64Url(buffer: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
 }
 
-function fromBase64Url(str: string): Uint8Array {
+function fromBase64Url(str: string): Uint8Array<ArrayBuffer> {
   const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   const binary = atob(base64);
-  return new Uint8Array(binary.length).map((_, i) => binary.charCodeAt(i));
+  const buf = new ArrayBuffer(binary.length);
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
-async function deriveKey(password: string, salt: Uint8Array): Promise<ArrayBuffer> {
+async function deriveKey(password: string, salt: Uint8Array<ArrayBuffer>): Promise<ArrayBuffer> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -28,7 +34,8 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<ArrayBuffe
 }
 
 export async function hashPassword(password: string): Promise<{ hash: string; salt: string }> {
-  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  const saltBytes = new Uint8Array(new ArrayBuffer(16));
+  crypto.getRandomValues(saltBytes);
   const hashBuffer = await deriveKey(password, saltBytes);
   return {
     hash: toBase64Url(hashBuffer),
